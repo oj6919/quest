@@ -199,12 +199,17 @@
     font-size:11px; padding:5px 10px; border-radius:20px; letter-spacing:1px;
   }
   .plat-fact-box{
-    position:absolute; left:8px; right:8px; bottom:8px; z-index:7;
-    background:rgba(239,226,194,.97); border:2px solid var(--wood); border-radius:9px;
-    padding:10px 12px; font-size:13px; line-height:1.5; color:var(--ink);
-    display:none;
+    position:absolute; left:8px; right:8px; bottom:8px; z-index:8;
+    background:rgba(239,226,194,.98); border:3px solid var(--wood); border-radius:10px;
+    padding:14px 16px; font-size:14.5px; line-height:1.6; color:var(--ink);
+    display:none; box-shadow:0 8px 20px rgba(0,0,0,.4);
   }
   .plat-fact-box.show{ display:block; }
+  .plat-dim{
+    position:absolute; inset:0; background:rgba(11,17,25,.55); z-index:7;
+    display:none; pointer-events:none;
+  }
+  .plat-dim.show{ display:block; }
   .plat-controls{ display:flex; gap:10px; justify-content:center; align-items:center; margin-bottom:14px; }
   .plat-controls .side{ display:flex; gap:8px; }
   .ctrl-btn{
@@ -268,6 +273,7 @@
         <div class="plat-wrap" id="plat-wrap">
           <div class="plat-hud" id="plat-hud">나침반 조각 0 / 3</div>
           <canvas id="plat-canvas" width="380" height="200"></canvas>
+          <div class="plat-dim" id="plat-dim"></div>
           <div class="plat-fact-box" id="plat-fact-box"></div>
         </div>
         <div class="plat-controls">
@@ -378,9 +384,9 @@ const QUEST_CONTENT = {
     type: "platform",
     platform: {
       facts: [
-        { x: 280, symbol:"羅", text:"羅(벌일 라) — 나침반의 첫 글자야. 이 물건은 방향을 '정해주는' 게 아니야. 자석 바늘을 자유롭게 두면, 바늘이 알아서 방향을 찾아가. 사람이 하는 일은 그 바늘을 믿고 읽는 것뿐이야." },
-        { x: 720, symbol:"針", text:"針(바늘 침) — 나침반의 핵심은 이 바늘 하나야. 1492년 콜럼버스 항해 중 이 바늘이 갑자기 틀어진 적이 있어. 선원들은 불안해했지만, 나침반이 몇백 년을 버틴 이유는 매번 정답을 줘서가 아니야." },
-        { x: 1160, symbol:"盤", text:"盤(소반 반) — 바늘을 올려놓는 받침이야. 나침반은 최소한 흔들리지 않는 기준 하나는 늘 알려줬어. 아빠도 네게 그런 몇 개의 기준을 쥐여주고 싶어. 방향만 알면, 길은 네가 알아서 찾을 거야." }
+        { x: 280, symbol:"羅", decoySymbol:"網", text:"羅(벌일 라) — 나침반의 첫 글자야. 이 물건은 방향을 '정해주는' 게 아니야. 자석 바늘을 자유롭게 두면, 바늘이 알아서 방향을 찾아가. 사람이 하는 일은 그 바늘을 믿고 읽는 것뿐이야." },
+        { x: 720, symbol:"針", decoySymbol:"刀", text:"針(바늘 침) — 나침반의 핵심은 이 바늘 하나야. 1492년 콜럼버스 항해 중 이 바늘이 갑자기 틀어진 적이 있어. 선원들은 불안해했지만, 나침반이 몇백 년을 버틴 이유는 매번 정답을 줘서가 아니야." },
+        { x: 1160, symbol:"盤", decoySymbol:"板", text:"盤(소반 반) — 바늘을 올려놓는 받침이야. 나침반은 최소한 흔들리지 않는 기준 하나는 늘 알려줬어. 아빠도 네게 그런 몇 개의 기준을 쥐여주고 싶어. 방향만 알면, 길은 네가 알아서 찾을 거야." }
       ],
       pipeX: 1500
     }
@@ -662,16 +668,26 @@ function buildPlatformLevel(q){
     { x:0, y:PLAT.GROUND_Y, w:PLAT.worldWidth, h:30 } // 바닥은 끊기지 않음 (안 죽음)
   ];
   pf.facts.forEach((f) => {
-    PLAT.platforms.push({ x:f.x-45, y:PLAT.GROUND_Y-55, w:90, h:14 });
+    PLAT.platforms.push({ x:f.x-60, y:PLAT.GROUND_Y-55, w:120, h:14 });
   });
-  PLAT.facts = pf.facts.map((f) => ({
-    x:f.x, y:PLAT.GROUND_Y-55-24, w:24, h:24, text:f.text, symbol:f.symbol, collected:false
-  }));
+  // 각 자리마다 정답 한자 + 오답(미끼) 한자를 함께 배치
+  PLAT.facts = [];
+  pf.facts.forEach((f) => {
+    PLAT.facts.push({
+      x:f.x-24, y:PLAT.GROUND_Y-55-26, w:26, h:26,
+      text:f.text, symbol:f.symbol, correct:true, collected:false, flashTs:0
+    });
+    PLAT.facts.push({
+      x:f.x+24, y:PLAT.GROUND_Y-55-26, w:26, h:26,
+      text:null, symbol:f.decoySymbol, correct:false, collected:false, flashTs:0
+    });
+  });
   PLAT.pipe = { x:pf.pipeX, y:PLAT.GROUND_Y-46, w:34, h:46 };
   PLAT.factsCollected = 0;
+  PLAT.totalRealFacts = pf.facts.length;
   PLAT.done = false;
   PLAT.entering = false;
-  PLAT.player = { x:30, y:PLAT.GROUND_Y-32, w:24, h:32, vx:0, vy:0, grounded:true, facing:1 };
+  PLAT.player = { x:30, y:PLAT.GROUND_Y-32, w:24, h:32, vx:0, vy:0, grounded:true, facing:1, squash:0 };
   PLAT.camX = 0;
   PLAT.walkPhase = 0;
 }
@@ -749,7 +765,13 @@ function updatePlatformer(){
     p.vx = 0;
     if(PLAT.inputLeft){ p.vx = -PLAT.MOVE_SPEED; p.facing = -1; }
     if(PLAT.inputRight){ p.vx = PLAT.MOVE_SPEED; p.facing = 1; }
-    p.x += p.vx;
+    if(p.knockback){
+      p.x += p.knockback;
+      p.knockback *= 0.82;
+      if(Math.abs(p.knockback) < 0.3) p.knockback = 0;
+    } else {
+      p.x += p.vx;
+    }
     p.x = Math.max(0, Math.min(PLAT.worldWidth - p.w, p.x));
 
     if(p.vx !== 0) PLAT.walkPhase += 0.22; // 걷는 다리 애니메이션 진행
@@ -759,8 +781,10 @@ function updatePlatformer(){
       PLAT.jumpQueued = false;
     }
 
-    p.vy += PLAT.GRAVITY;
+    // 떨어질 땐 더 빠르게 (통통 튀는 점프감)
+    p.vy += (p.vy > 0) ? PLAT.GRAVITY * 1.5 : PLAT.GRAVITY;
     const prevBottom = p.y + p.h;
+    const wasGrounded = p.grounded;
     p.y += p.vy;
     p.grounded = false;
 
@@ -773,16 +797,26 @@ function updatePlatformer(){
         p.grounded = true;
       }
     });
+    if(p.grounded && !wasGrounded) p.squash = 1; // 착지 스쿼시 트리거
+    if(p.squash > 0) p.squash *= 0.75;
 
-    // 한자 조각 수집 체크
+    // 한자 조각 판정 (정답 / 오답 미끼)
     PLAT.facts.forEach(f => {
       if(f.collected) return;
       const hit = p.x < f.x + f.w && p.x + p.w > f.x && p.y < f.y + f.h && p.y + p.h > f.y;
       if(hit){
-        f.collected = true;
-        PLAT.factsCollected++;
-        el('plat-hud').textContent = '한자 조각 ' + PLAT.factsCollected + ' / ' + PLAT.facts.length;
-        showPlatformFact(f.symbol + '  ' + f.text);
+        if(f.correct){
+          f.collected = true;
+          PLAT.factsCollected++;
+          el('plat-hud').textContent = '한자 조각 ' + PLAT.factsCollected + ' / ' + PLAT.totalRealFacts;
+          showPlatformFact(f.symbol + '  ' + f.text);
+        } else {
+          f.flashTs = performance.now();
+          const dir = (p.x + p.w/2 < f.x + f.w/2) ? -1 : 1;
+          p.knockback = dir * 9;
+          p.vy = -6;
+          el('plat-feedback').textContent = '땡! 그 글자는 아니야. 포스팅 내용 떠올려서 다시 골라봐.';
+        }
       }
     });
 
@@ -790,7 +824,7 @@ function updatePlatformer(){
     const pipe = PLAT.pipe;
     const hitPipe = p.x + p.w > pipe.x + 4 && p.x < pipe.x + pipe.w - 4 && p.y + p.h > pipe.y + 6;
     if(hitPipe){
-      if(PLAT.factsCollected >= PLAT.facts.length){
+      if(PLAT.factsCollected >= PLAT.totalRealFacts){
         startPipeEntry();
       } else {
         el('plat-feedback').textContent = '아직 다 모으지 못한 한자가 있어. 羅·針·盤 세 글자를 다 먹어야 파이프가 열려.';
@@ -847,61 +881,117 @@ function sinkIntoPipe(){
 
 function showPlatformFact(text){
   const box = el('plat-fact-box');
+  const dim = el('plat-dim');
   box.textContent = text;
   box.classList.add('show');
+  dim.classList.add('show');
   if(PLAT.factBoxTimer) clearTimeout(PLAT.factBoxTimer);
-  PLAT.factBoxTimer = setTimeout(() => box.classList.remove('show'), 4600);
+  PLAT.factBoxTimer = setTimeout(() => {
+    box.classList.remove('show');
+    dim.classList.remove('show');
+  }, 4600);
 }
 
-/* 직접 그리는 2D 선장 캐릭터 (사진 대신 픽셀아트 스타일 도형 조합) */
-function drawCaptainSprite(ctx, w, h, facing, moving, grounded, walkPhase){
+/* 직접 그리는 2D 선장 캐릭터 — 귀엽고 읽기 쉬운 치비(chibi) 스타일 */
+function roundRectPath(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawCaptainSprite(ctx, w, h, facing, moving, grounded, walkPhase, squash){
   ctx.save();
   ctx.scale(facing, 1);
+  const sq = squash || 0;
+  ctx.scale(1 + sq*0.18, 1 - sq*0.18); // 착지 스쿼시
 
-  const legSwing = grounded && moving ? Math.sin(walkPhase) * (h*0.16) : 0;
-  const bob = grounded && moving ? Math.abs(Math.sin(walkPhase)) * 1.5 : 0;
+  const legSwing = grounded && moving ? Math.sin(walkPhase) * (h*0.13) : 0;
 
-  // 다리 (걸을 때 앞뒤로 교차)
-  ctx.fillStyle = '#241a10';
-  ctx.fillRect(-w*0.32, h*0.30 + legSwing, w*0.26, h*0.24 - legSwing);
-  ctx.fillRect(w*0.06, h*0.30 - legSwing, w*0.26, h*0.24 + legSwing);
-
-  // 몸통 (붉은 코트)
-  ctx.fillStyle = '#8b2e2e';
-  ctx.fillRect(-w*0.36, -h*0.08 - bob, w*0.72, h*0.42);
-  // 코트 벨트
-  ctx.fillStyle = '#3d2716';
-  ctx.fillRect(-w*0.36, h*0.20 - bob, w*0.72, h*0.06);
-  // 벨트 버클
-  ctx.fillStyle = '#d4af37';
-  ctx.fillRect(-w*0.06, h*0.195 - bob, w*0.12, h*0.08);
-
-  // 팔
-  ctx.fillStyle = '#6e2323';
-  ctx.fillRect(w*0.30, -h*0.02 - bob, w*0.14, h*0.28);
-
-  // 머리
-  ctx.fillStyle = '#e7b98c';
+  // 그림자
+  ctx.fillStyle = 'rgba(0,0,0,.18)';
   ctx.beginPath();
-  ctx.ellipse(0, -h*0.24 - bob, w*0.28, h*0.18, 0, 0, Math.PI*2);
+  ctx.ellipse(0, h*0.52, w*0.32, h*0.06, 0, 0, Math.PI*2);
   ctx.fill();
 
-  // 삼각모 (모자)
-  ctx.fillStyle = '#241a10';
+  // 다리 (짧고 통통, 걸을 때 교차)
+  ctx.strokeStyle = '#241a10'; ctx.lineWidth = 2;
+  ctx.fillStyle = '#3d2716';
+  roundRectPath(ctx, -w*0.20, h*0.30 + legSwing, w*0.16, h*0.20 - legSwing, 5);
+  ctx.fill(); ctx.stroke();
+  roundRectPath(ctx, w*0.04, h*0.30 - legSwing, w*0.16, h*0.20 + legSwing, 5);
+  ctx.fill(); ctx.stroke();
+
+  // 몸통 (둥글고 통통한 빨간 코트)
+  ctx.fillStyle = '#c23b3b';
+  roundRectPath(ctx, -w*0.30, -h*0.02, w*0.60, h*0.36, w*0.16);
+  ctx.fill();
+  ctx.strokeStyle = '#5a1414'; ctx.lineWidth = 2.5; ctx.stroke();
+  // 코트 단추
+  ctx.fillStyle = '#f4d35e';
+  [0.06, 0.16].forEach(t => {
+    ctx.beginPath(); ctx.arc(0, -h*0.02 + h*0.36*t + h*0.05, w*0.045, 0, Math.PI*2); ctx.fill();
+  });
+
+  // 팔 + 후크
+  ctx.fillStyle = '#a83232';
+  roundRectPath(ctx, w*0.26, h*0.0, w*0.13, h*0.24, 6);
+  ctx.fill(); ctx.strokeStyle = '#5a1414'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#c7c7c7';
   ctx.beginPath();
-  ctx.moveTo(-w*0.44, -h*0.30 - bob);
-  ctx.quadraticCurveTo(0, -h*0.55 - bob, w*0.44, -h*0.30 - bob);
-  ctx.quadraticCurveTo(0, -h*0.36 - bob, -w*0.44, -h*0.30 - bob);
+  ctx.arc(w*0.34, h*0.24, w*0.07, 0.1*Math.PI, 1.3*Math.PI);
+  ctx.lineWidth = w*0.045; ctx.strokeStyle = '#8a8a8a'; ctx.stroke();
+
+  // 머리 (크고 둥근 치비 얼굴)
+  const headY = -h*0.28;
+  ctx.fillStyle = '#f6c99a';
+  ctx.beginPath();
+  ctx.arc(0, headY, w*0.34, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = '#c98a54'; ctx.lineWidth = 2; ctx.stroke();
+
+  // 볼터치
+  ctx.fillStyle = 'rgba(230,110,110,.55)';
+  ctx.beginPath(); ctx.arc(-w*0.16, headY+h*0.04, w*0.06, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.16, headY+h*0.04, w*0.06, 0, Math.PI*2); ctx.fill();
+
+  // 눈 (크고 동그란 눈, 반짝임 있는 귀여운 눈)
+  ctx.fillStyle = '#241a10';
+  ctx.beginPath(); ctx.arc(-w*0.11, headY-h*0.01, w*0.055, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.14, headY-h*0.01, w*0.055, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-w*0.095, headY-h*0.025, w*0.018, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*0.155, headY-h*0.025, w*0.018, 0, Math.PI*2); ctx.fill();
+
+  // 작은 콧수염 (선장 느낌)
+  ctx.strokeStyle = '#3d2716'; ctx.lineWidth = w*0.035; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-w*0.10, headY+h*0.10); ctx.quadraticCurveTo(0, headY+h*0.15, w*0.10, headY+h*0.10);
+  ctx.stroke();
+
+  // 삼각모 (귀여운 통통한 실루엣, 노란 별 장식)
+  ctx.fillStyle = '#2a1d10';
+  ctx.beginPath();
+  ctx.moveTo(-w*0.42, headY-h*0.10);
+  ctx.quadraticCurveTo(0, headY-h*0.44, w*0.42, headY-h*0.10);
+  ctx.quadraticCurveTo(0, headY-h*0.20, -w*0.42, headY-h*0.10);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#8b2e2e';
-  ctx.fillRect(-w*0.4, -h*0.31 - bob, w*0.8, h*0.05);
-
-  // 눈/수염 살짝
-  ctx.fillStyle = '#241a10';
-  ctx.fillRect(w*0.08, -h*0.26 - bob, w*0.06, h*0.06);
-  ctx.fillStyle = '#3d2716';
-  ctx.fillRect(-w*0.06, -h*0.14 - bob, w*0.24, h*0.05);
+  ctx.strokeStyle = '#150d06'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#f4d35e';
+  ctx.beginPath();
+  const starX=0, starY=headY-h*0.24, sr=w*0.045;
+  for(let i=0;i<5;i++){
+    const ang = -Math.PI/2 + i*(2*Math.PI/5);
+    const ang2 = ang + Math.PI/5;
+    ctx.lineTo(starX+Math.cos(ang)*sr, starY+Math.sin(ang)*sr);
+    ctx.lineTo(starX+Math.cos(ang2)*sr*0.45, starY+Math.sin(ang2)*sr*0.45);
+  }
+  ctx.closePath();
+  ctx.fill();
 
   ctx.restore();
 }
@@ -930,19 +1020,21 @@ function renderPlatformer(){
     ctx.fillRect(pl.x, pl.y, pl.w, 5);
   });
 
-  // 한자 조각 (羅 針 盤)
+  // 한자 조각 (정답 = 금테, 오답 미끼 = 흐릿한 회색톤 + 맞으면 빨갛게 반짝)
   PLAT.facts.forEach(f => {
     if(f.collected) return;
+    const sinceFlash = performance.now() - f.flashTs;
+    const flashing = f.flashTs && sinceFlash < 260;
     ctx.save();
     ctx.translate(f.x + f.w/2, f.y + f.h/2);
-    ctx.translate(0, Math.sin(performance.now()/300)*3);
-    ctx.fillStyle = '#efe2c2';
-    ctx.strokeStyle = '#3d2716';
-    ctx.lineWidth = 2;
+    ctx.translate(0, Math.sin(performance.now()/300 + f.x)*3);
+    ctx.fillStyle = flashing ? '#e08a8a' : (f.correct ? '#efe2c2' : '#d9cdb0');
+    ctx.strokeStyle = flashing ? '#8b2e2e' : (f.correct ? '#d4af37' : '#8a7d5e');
+    ctx.lineWidth = f.correct ? 2.5 : 2;
     ctx.beginPath();
     ctx.arc(0,0,14,0,Math.PI*2);
     ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#8b2e2e';
+    ctx.fillStyle = f.correct ? '#8b2e2e' : '#6b6152';
     ctx.font = 'bold 16px "Nanum Myeongjo", serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(f.symbol, 0, 1);
@@ -951,7 +1043,7 @@ function renderPlatformer(){
 
   // 파이프 (마리오식) — 조각 다 모으면 초록, 아니면 회색
   const pipe = PLAT.pipe;
-  const allDone = PLAT.factsCollected >= PLAT.facts.length;
+  const allDone = PLAT.factsCollected >= PLAT.totalRealFacts;
   const pipeBody = allDone ? '#2e6b3e' : '#7d8a91';
   const pipeCap = allDone ? '#3a8a52' : '#93a0a6';
   ctx.fillStyle = pipeBody;
@@ -970,7 +1062,7 @@ function renderPlatformer(){
   ctx.save();
   ctx.translate(p.x + p.w/2, p.y + p.h/2 + (p.h/2) * ( (p.scaleY!==undefined) ? (1-p.scaleY) : 0));
   if(p.scaleY !== undefined) ctx.scale(1, p.scaleY);
-  drawCaptainSprite(ctx, p.w*1.7, p.h*1.55, p.facing, moving, p.grounded, PLAT.walkPhase);
+  drawCaptainSprite(ctx, p.w*2.1, p.h*1.9, p.facing, moving, p.grounded, PLAT.walkPhase, p.squash || 0);
   ctx.restore();
 
   ctx.restore();
@@ -980,7 +1072,7 @@ function finishPlatformQuest(){
   stopPlatformer();
   if(!completed.includes(activeQuest.id)) completed.push(activeQuest.id);
   saveCompleted();
-  const total = activeQuest.platform.facts.length;
+  const total = PLAT.totalRealFacts;
   el('complete-img').src = CAPTAIN_SRC;
   el('score-text').textContent = '羅針盤 — 한자 ' + PLAT.factsCollected + ' / ' + total + ' 조각 모음';
   el('complete-msg').textContent = '나침반은 매번 정답을 주진 않아도, 흔들리지 않는 기준 하나는 알려줘. 오늘 그 세 글자를 다 모아서 파이프를 통과했어.';
