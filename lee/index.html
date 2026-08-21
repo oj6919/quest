@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>이용희의 부산본사 이전기</title>
+<link href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@latest/neodgm/style.css" rel="stylesheet">
+<style>
+  :root {
+    --gb-bg: #f8f8f8; --gb-border: #222; --hp-green: #4caf50; --hp-red: #f44336;
+    --mp-blue: #2196f3; --menu-bg: #fff; --text: #111;
+  }
+  * { box-sizing: border-box; font-family: 'NeoDunggeunmo', monospace; }
+  body {
+    background: #333; display: flex; align-items: center; justify-content: center;
+    height: 100vh; margin: 0; padding: 10px;
+  }
+  #game-boy {
+    width: 100%; max-width: 480px; background: #c0c0c0;
+    border-radius: 10px 10px 40px 10px; padding: 20px;
+    box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2), 5px 5px 15px rgba(0,0,0,0.5);
+  }
+  #screen-bezel {
+    background: #111; padding: 20px 20px 40px 20px; border-radius: 10px 10px 30px 10px;
+  }
+  #screen {
+    width: 100%; height: 320px; background: var(--gb-bg);
+    border: 4px solid var(--gb-border); position: relative;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  
+  /* Battle Scene */
+  #battle-view { flex: 1; position: relative; background: #e0f7fa; border-bottom: 4px solid var(--gb-border); }
+  
+  /* HUDs */
+  .hud {
+    position: absolute; background: #fff; border: 3px solid var(--gb-border);
+    border-radius: 5px; padding: 8px; width: 55%; box-shadow: 2px 2px 0 var(--gb-border);
+  }
+  #enemy-hud { top: 15px; left: 10px; border-bottom-right-radius: 15px; }
+  #player-hud { bottom: 15px; right: 10px; border-top-left-radius: 15px; }
+  
+  .hud-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
+  .bar-container { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+  .bar-label { font-size: 12px; font-weight: bold; width: 20px; }
+  .bar-track { flex: 1; height: 10px; background: #ccc; border: 2px solid #555; border-radius: 5px; overflow: hidden; }
+  .hp-fill { height: 100%; background: var(--hp-green); width: 100%; transition: width 0.3s, background 0.3s; }
+  .mp-fill { height: 100%; background: var(--mp-blue); width: 100%; transition: width 0.3s; }
+  .hp-text { font-size: 12px; text-align: right; margin-top: 2px; }
+
+  /* Sprites (Using Emojis + CSS Animations) */
+  .sprite { position: absolute; font-size: 60px; filter: drop-shadow(2px 4px 0px rgba(0,0,0,0.3)); }
+  #enemy-sprite { top: 30px; right: 30px; animation: float 2s infinite ease-in-out; }
+  #player-sprite { bottom: 20px; left: 30px; font-size: 70px; }
+  
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+  @keyframes attack-bump { 0% { transform: translate(0,0); } 50% { transform: translate(15px, -15px); } 100% { transform: translate(0,0); } }
+
+  /* Bottom Panel */
+  #bottom-panel { height: 100px; display: flex; background: var(--menu-bg); }
+  
+  #dialogue-box {
+    flex: 1; padding: 12px; font-size: 16px; line-height: 1.5; color: var(--text);
+    border-right: 4px solid var(--gb-border);
+  }
+  
+  #menu-box { width: 140px; display: none; grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  #menu-box.active { display: grid; }
+  .menu-btn {
+    background: transparent; border: none; border-bottom: 2px solid #ccc;
+    font-family: 'NeoDunggeunmo', monospace; font-size: 15px; text-align: left;
+    padding: 10px; cursor: pointer; color: var(--text);
+  }
+  .menu-btn:hover { background: #eee; }
+  .menu-btn::before { content: '▶ '; opacity: 0; }
+  .menu-btn:hover::before { opacity: 1; }
+
+  #move-box { width: 100%; display: none; grid-template-columns: 1fr 1fr; background: var(--menu-bg); position: absolute; bottom: 0; height: 100px; border-top: 4px solid var(--gb-border); z-index: 10; }
+  #move-box.active { display: grid; }
+  .move-btn {
+    background: #fff; border: 2px solid #ccc; font-family: 'NeoDunggeunmo', monospace;
+    font-size: 15px; cursor: pointer; padding: 5px;
+  }
+  .move-btn:hover { background: #f0f0f0; border-color: var(--gb-border); }
+  .move-desc { font-size: 11px; color: #666; display: block; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div id="game-boy">
+  <div id="screen-bezel">
+    <div id="screen">
+      
+      <div id="battle-view">
+        <div class="hud" id="enemy-hud">
+          <div class="hud-name">야생의 술상무</div>
+          <div class="bar-container">
+            <div class="bar-label">HP</div>
+            <div class="bar-track"><div class="hp-fill" id="enemy-hp-bar"></div></div>
+          </div>
+        </div>
+        <div class="sprite" id="enemy-sprite">👔</div>
+        
+        <div class="sprite" id="player-sprite">💼</div>
+        <div class="hud" id="player-hud">
+          <div class="hud-name">이용희 (세종)</div>
+          <div class="bar-container">
+            <div class="bar-label">HP</div>
+            <div class="bar-track"><div class="hp-fill" id="player-hp-bar"></div></div>
+          </div>
+          <div class="bar-container">
+            <div class="bar-label">MP</div>
+            <div class="bar-track"><div class="mp-fill" id="player-mp-bar"></div></div>
+          </div>
+          <div class="hp-text"><span id="player-hp-text">100</span> / 100</div>
+        </div>
+      </div>
+
+      <div id="bottom-panel">
+        <div id="dialogue-box"></div>
+        <div id="menu-box">
+          <button class="menu-btn" onclick="showMoves()">싸운다</button>
+          <button class="menu-btn" onclick="useItem()">아이템</button>
+          <button class="menu-btn" onclick="runAway()">도망친다</button>
+        </div>
+      </div>
+      
+      <div id="move-box">
+        <button class="move-btn" onclick="playerAttack(0)">기안서 스매시<span class="move-desc">기본 공격 (MP 0)</span></button>
+        <button class="move-btn" onclick="playerAttack(1)">규정집 낭독<span class="move-desc">강한 공격 (MP 20)</span></button>
+        <button class="move-btn" onclick="playerAttack(2)">법카 방어막<span class="move-desc">회복 및 방어 (MP 30)</span></button>
+        <button class="move-btn" onclick="playerAttack(3)">취소<span class="move-desc">뒤로 가기</span></button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// --- 데이터 및 상태 정의 ---
+const player = {
+  name: "이용희", maxHp: 100, hp: 100, maxMp: 50, mp: 50, defBuff: false
+};
+const enemy = {
+  name: "야생의 술상무", maxHp: 150, hp: 150
+};
+
+const enemySkills = [
+  { name: "2차 가자!", dmg: 25, msg: "술상무가 법인카드를 꺼내며 2차를 외쳤다!" },
+  { name: "건배사 릴레이", dmg: 15, msg: "술상무가 끝없는 건배사를 시작했다! 고막 데미지!" },
+  { name: "라떼는 말이야", dmg: 20, msg: "술상무의 과거 썰 풀기 공격! 멘탈이 깎여나간다." }
+];
+
+let isAnimating = false;
+
+// --- 유틸리티 함수 ---
+function el(id) { return document.getElementById(id); }
+
+async function typeText(text) {
+  isAnimating = true;
+  el('menu-box').classList.remove('active');
+  el('move-box').classList.remove('active');
+  const diag = el('dialogue-box');
+  diag.innerHTML = "";
+  
+  for (let i = 0; i < text.length; i++) {
+    diag.innerHTML += text.charAt(i);
+    await new Promise(r => setTimeout(r, 40));
+  }
+  await new Promise(r => setTimeout(r, 800)); // 읽을 시간 대기
+  isAnimating = false;
+}
+
+function updateHUD() {
+  const pHP = Math.max(0, (player.hp / player.maxHp) * 100);
+  const eHP = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+  const pMP = Math.max(0, (player.mp / player.maxMp) * 100);
+  
+  el('player-hp-bar').style.width = pHP + '%';
+  el('player-hp-bar').style.background = pHP > 50 ? 'var(--hp-green)' : (pHP > 20 ? 'orange' : 'var(--hp-red)');
+  el('player-hp-text').innerText = player.hp;
+  el('player-mp-bar').style.width = pMP + '%';
+  
+  el('enemy-hp-bar').style.width = eHP + '%';
+  el('enemy-hp-bar').style.background = eHP > 50 ? 'var(--hp-green)' : (eHP > 20 ? 'orange' : 'var(--hp-red)');
+}
+
+function shakeElement(id) {
+  el(id).style.animation = 'none';
+  void el(id).offsetWidth;
+  el(id).style.animation = 'shake 0.4s';
+}
+
+function attackAnimation(id) {
+  el(id).style.animation = 'none';
+  void el(id).offsetWidth;
+  el(id).style.animation = 'attack-bump 0.3s';
+}
+
+// --- 게임 흐름 제어 ---
+window.onload = async () => {
+  updateHUD();
+  await typeText("앗! 야생의 [술상무]가 나타났다!");
+  await typeText("세종발전본부 소속 [이용희],\n어떻게 할까?");
+  showMainMenu();
+};
+
+function showMainMenu() {
+  if (isAnimating) return;
+  el('dialogue-box').innerHTML = "무엇을 할까?";
+  el('menu-box').classList.add('active');
+  el('move-box').classList.remove('active');
+}
+
+function showMoves() {
+  if (isAnimating) return;
+  el('menu-box').classList.remove('active');
+  el('move-box').classList.add('active');
+}
+
+async function useItem() {
+  if (isAnimating) return;
+  await typeText("가방을 뒤졌다...\n하지만 컨디션(숙취해소제)이 없다!");
+  showMainMenu();
+}
+
+async function runAway() {
+  if (isAnimating) return;
+  await typeText("KTX 앱을 켰다...\n하지만 매진이라 도망칠 수 없다!");
+  showMainMenu();
+}
+
+async function playerAttack(moveId) {
+  if (isAnimating) return;
+  el('move-box').classList.remove('active');
+  
+  if (moveId === 3) { showMainMenu(); return; } // 취소
+
+  player.defBuff = false; // 방어막 초기화
+
+  if (moveId === 0) {
+    await typeText("이용희의 기안서 스매시!");
+    attackAnimation('player-sprite');
+    let dmg = Math.floor(Math.random() * 15) + 15;
+    enemy.hp -= dmg;
+    shakeElement('enemy-sprite');
+    updateHUD();
+    await typeText(`효과는 뛰어났다! 술상무의 HP가 ${dmg} 감소했다.`);
+  } 
+  else if (moveId === 1) {
+    if (player.mp < 20) { await typeText("MP(법인카드 한도)가 부족하다!"); showMainMenu(); return; }
+    player.mp -= 20;
+    updateHUD();
+    await typeText("이용희는 내규 규정집을 꺼내 낭독했다!");
+    attackAnimation('player-sprite');
+    let dmg = Math.floor(Math.random() * 20) + 25;
+    enemy.hp -= dmg;
+    shakeElement('enemy-sprite');
+    updateHUD();
+    await typeText(`술상무는 규정에 찔려 크리티컬 데미지(${dmg})를 입었다!`);
+  }
+  else if (moveId === 2) {
+    if (player.mp < 30) { await typeText("MP가 부족하다!"); showMainMenu(); return; }
+    player.mp -= 30;
+    player.hp = Math.min(player.maxHp, player.hp + 40);
+    player.defBuff = true;
+    updateHUD();
+    await typeText("이용희는 법인카드를 긁어 팀원들에게 커피를 돌렸다!\nHP가 40 회복되고 방어력이 상승했다.");
+  }
+
+  if (enemy.hp <= 0) {
+    enemy.hp = 0; updateHUD();
+    await typeText("야생의 술상무는 만취하여 쓰러졌다!");
+    await typeText("전투 승리!\n이용희는 무사히 부산본사(BIFC)로 발령받았다!");
+    el('dialogue-box').innerHTML = "<b style='color:var(--hp-green)'>[THE END] 수고하셨습니다!</b>";
+    return;
+  }
+
+  // 적 턴
+  setTimeout(enemyTurn, 500);
+}
+
+async function enemyTurn() {
+  const skill = enemySkills[Math.floor(Math.random() * enemySkills.length)];
+  await typeText(skill.msg);
+  attackAnimation('enemy-sprite');
+  
+  let finalDmg = skill.dmg;
+  if (player.defBuff) {
+    finalDmg = Math.floor(finalDmg * 0.4); // 방어 시 데미지 60% 감소
+    await typeText("법카 방어막 덕분에 타격이 적었다!");
+  }
+  
+  player.hp -= finalDmg;
+  shakeElement('player-sprite');
+  updateHUD();
+  
+  if (player.hp <= 0) {
+    player.hp = 0; updateHUD();
+    await typeText("이용희의 멘탈이 붕괴되었다...");
+    await typeText("눈앞이 깜깜해졌다.\n내일도 세종으로 출근해야 한다...");
+    el('dialogue-box').innerHTML = "<b style='color:var(--hp-red)'>[GAME OVER]</b>";
+    return;
+  }
+  
+  player.mp = Math.min(player.maxMp, player.mp + 10); // 턴마다 MP 약간 회복
+  updateHUD();
+  showMainMenu();
+}
+</script>
+</body>
+</html>
