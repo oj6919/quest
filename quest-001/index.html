@@ -8,63 +8,39 @@
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --sea-deep:#0b3350;
-    --sea-mid:#1a5b86;
-    --sea-light:#2e7fab;
-    --wood:#5a3a24;
-    --wood-dark:#3d2716;
-    --parchment:#efe2c2;
-    --parchment-dark:#ddc794;
-    --ink:#2c1c10;
-    --rope:#c9a05c;
-    --gold:#d4af37;
-    --sand:#e6c98a;
-    --wrong:#8b2e2e;
-    --right:#2e6b3e;
-    --locked:#7d8a91;
+    --sea-deep:#0b3350; --sea-mid:#1a5b86; --sea-light:#2e7fab;
+    --wood:#5a3a24; --wood-dark:#3d2716;
+    --parchment:#efe2c2; --parchment-dark:#ddc794;
+    --ink:#2c1c10; --rope:#c9a05c; --gold:#d4af37; --sand:#e6c98a;
+    --wrong:#8b2e2e; --right:#2e6b3e; --locked:#7d8a91;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     min-height:100vh;
     background: radial-gradient(ellipse at 50% -10%, var(--sea-mid), var(--sea-deep) 60%);
-    font-family:'Nanum Myeongjo', serif;
-    color:var(--ink);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px 14px;
-    overflow-x:hidden;
+    font-family:'Nanum Myeongjo', serif; color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px 14px; overflow-x:hidden;
   }
   .stage{ width:100%; max-width:420px; position:relative; }
   .plank-frame{
     background: repeating-linear-gradient(90deg, var(--wood) 0 54px, var(--wood-dark) 54px 58px);
-    border-radius:18px;
-    padding:10px;
+    border-radius:18px; padding:10px;
     box-shadow:0 20px 50px rgba(0,0,0,.5), inset 0 0 0 3px rgba(0,0,0,.25);
   }
   .card{
     background: linear-gradient(180deg, var(--parchment), var(--parchment-dark));
-    border-radius:12px;
-    padding:22px 18px 26px;
-    position:relative;
+    border-radius:12px; padding:22px 18px 26px; position:relative;
     box-shadow: inset 0 0 40px rgba(90,58,36,.25);
-    min-height: 480px;
-    display:flex;
-    flex-direction:column;
+    min-height: 520px; display:flex; flex-direction:column;
   }
   .card::before{
     content:""; position:absolute; inset:8px;
     border:1px dashed rgba(44,28,16,.35); border-radius:8px; pointer-events:none;
   }
-  .eyebrow{
-    font-family:'Black Han Sans', sans-serif; letter-spacing:2px; font-size:12px;
-    color:var(--wood-dark); opacity:.75; text-align:center; margin-bottom:4px;
-  }
-  h1{
-    font-family:'Black Han Sans', sans-serif; font-size:22px; text-align:center;
-    margin:2px 0 12px; color:var(--ink); line-height:1.35;
-  }
+  .eyebrow{ font-family:'Black Han Sans', sans-serif; letter-spacing:2px; font-size:12px; color:var(--wood-dark); opacity:.75; text-align:center; margin-bottom:4px; }
+  h1{ font-family:'Black Han Sans', sans-serif; font-size:22px; text-align:center; margin:2px 0 12px; color:var(--ink); line-height:1.35; }
   .rope-divider{
     height:10px; margin:6px 0 16px;
     background-image: radial-gradient(circle, var(--rope) 2.5px, transparent 2.8px);
@@ -83,67 +59,56 @@
     box-shadow:0 6px 0 #123322, 0 10px 18px rgba(0,0,0,.35); margin-top:10px;
   }
   .btn.secondary:active{ box-shadow:0 2px 0 #123322; }
-  .btn[disabled]{ opacity:.55; pointer-events:none; }
 
   .screen{ display:none; flex-direction:column; flex:1; }
   .screen.active{ display:flex; }
 
-  /* ===== MAP SCREEN ===== */
-  .map-box{
-    position:relative;
-    width:100%;
-    aspect-ratio: 4 / 3;
-    border-radius:10px;
-    overflow:hidden;
-    background:
-      radial-gradient(circle at 20% 15%, rgba(255,255,255,.25), transparent 40%),
-      linear-gradient(180deg, var(--sea-light), var(--sea-mid) 70%, var(--sea-deep));
+  /* ===== MAP (스크롤형) ===== */
+  .map-outer{
+    position:relative; width:100%; height:380px; border-radius:10px; overflow:hidden;
     box-shadow: inset 0 0 0 3px rgba(0,0,0,.15), inset 0 8px 20px rgba(0,0,0,.2);
     margin-bottom:14px;
+    background: linear-gradient(180deg, var(--sea-light), var(--sea-mid) 40%, var(--sea-deep));
   }
-  .map-box svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .map-scroll{
+    position:absolute; inset:0; overflow-y:auto; overflow-x:hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .map-world{ position:relative; width:100%; }
+  .map-world svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .progress-badge{
+    position:absolute; top:8px; right:8px; z-index:6;
+    background:rgba(11,51,80,.85); color:#efe2c2; font-family:'Black Han Sans', sans-serif;
+    font-size:11px; padding:5px 10px; border-radius:20px; letter-spacing:1px;
+  }
   .island{
-    position:absolute;
-    width:15%;
-    aspect-ratio:1/1;
-    transform: translate(-50%,-50%);
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column;
-    font-family:'Black Han Sans', sans-serif;
-    cursor:pointer;
-    border:3px solid var(--wood-dark);
+    position:absolute; width:52px; height:52px; transform: translate(-50%,-50%);
+    border-radius:50%; display:flex; align-items:center; justify-content:center; flex-direction:column;
+    font-family:'Black Han Sans', sans-serif; cursor:pointer; border:3px solid var(--wood-dark);
     background: radial-gradient(circle at 35% 30%, #f4dfa0, var(--sand));
-    box-shadow:0 6px 14px rgba(0,0,0,.35);
-    transition: transform .15s ease;
+    box-shadow:0 6px 14px rgba(0,0,0,.35); transition: transform .15s ease;
   }
-  .island.locked{
-    background: radial-gradient(circle at 35% 30%, #a3adb2, var(--locked));
-    cursor:not-allowed;
-    filter: saturate(.5);
-  }
-  .island.current{ animation: pulse 1.6s ease-in-out infinite; }
+  .island.locked{ background: radial-gradient(circle at 35% 30%, #a3adb2, var(--locked)); cursor:not-allowed; filter: saturate(.5); }
+  .island.spotlight{ animation: pulse 1.6s ease-in-out infinite; }
   @keyframes pulse{
     0%,100%{ box-shadow:0 6px 14px rgba(0,0,0,.35), 0 0 0 0 rgba(212,175,55,.6); }
     50%{ box-shadow:0 6px 14px rgba(0,0,0,.35), 0 0 0 10px rgba(212,175,55,0); }
   }
   .island:active{ transform: translate(-50%,-50%) scale(.94); }
-  .island .num{ font-size:14px; color:var(--wood-dark); line-height:1; }
-  .island .icon{ font-size:16px; line-height:1; margin-top:1px; }
+  .island .num{ font-size:12px; color:var(--wood-dark); line-height:1; }
+  .island .icon{ font-size:14px; line-height:1; margin-top:1px; }
   .island.shake{ animation: shake .35s ease; }
   @keyframes shake{
     0%,100%{ transform: translate(-50%,-50%); }
-    25%{ transform: translate(-56%,-50%); }
-    75%{ transform: translate(-44%,-50%); }
+    25%{ transform: translate(-58%,-50%); }
+    75%{ transform: translate(-42%,-50%); }
   }
-  .flag{ position:absolute; top:-16px; left:50%; transform:translateX(-50%); font-size:16px; }
+  .flag{ position:absolute; top:-15px; left:50%; transform:translateX(-50%); font-size:14px; }
 
   .captain-marker{
-    position:absolute; width:13%; aspect-ratio:1/1;
-    transform: translate(-50%,-115%);
+    position:absolute; width:46px; height:46px; transform: translate(-50%,-115%);
     border-radius:8px; overflow:hidden; border:2px solid #fff8e8;
-    box-shadow:0 4px 10px rgba(0,0,0,.4);
-    animation: bobtiny 2s ease-in-out infinite;
+    box-shadow:0 4px 10px rgba(0,0,0,.4); animation: bobtiny 2s ease-in-out infinite;
     transition: left 1.15s cubic-bezier(.45,.05,.55,.95), top 1.15s cubic-bezier(.45,.05,.55,.95);
     z-index:5;
   }
@@ -155,22 +120,16 @@
     50%{ margin-top:-13px; transform: translate(-50%,-115%) rotate(7deg); }
   }
   .dust{
-    position:absolute; width:7px; height:7px; border-radius:50%;
-    background: rgba(255,255,255,.85);
-    animation: dustfade .55s ease-out forwards;
-    pointer-events:none; z-index:4; transform:translate(-50%,-50%);
+    position:absolute; width:7px; height:7px; border-radius:50%; background: rgba(255,255,255,.85);
+    animation: dustfade .55s ease-out forwards; pointer-events:none; z-index:4; transform:translate(-50%,-50%);
   }
   @keyframes dustfade{
     0%{ opacity:.85; transform: translate(-50%,-50%) scale(1); }
     100%{ opacity:0; transform: translate(-50%,-50%) scale(2.2) translateY(8px); }
   }
+  .map-hint{ text-align:center; font-size:13px; color:rgba(239,226,194,.75); margin: 0 0 14px; min-height:18px; }
 
-  .map-hint{
-    text-align:center; font-size:13px; color:rgba(239,226,194,.75);
-    margin: 0 0 14px; min-height:18px;
-  }
-
-  /* ===== QUIZ SCREEN ===== */
+  /* ===== QUIZ ===== */
   .marks{ display:flex; justify-content:center; gap:8px; margin: 2px 0 16px; }
   .mark{
     width:30px;height:30px; border-radius:50%; border:2px solid var(--wood);
@@ -197,7 +156,7 @@
   .opt[disabled]{ pointer-events:none; }
   .feedback{ margin-top:12px; text-align:center; font-size:13.5px; min-height:20px; color:var(--wood-dark); font-weight:700; }
 
-  /* ===== COMPLETE SCREEN ===== */
+  /* ===== COMPLETE ===== */
   .center{ text-align:center; }
   .stamp{
     font-family:'Black Han Sans', sans-serif; font-size:26px; color:var(--wrong);
@@ -226,22 +185,24 @@
   <div class="plank-frame">
     <div class="card">
 
-      <!-- MAP -->
       <div class="screen active" id="screen-map">
         <div class="eyebrow">CAPTAIN'S CHART</div>
         <h1>아빠의 퀘스트 지도</h1>
         <div class="rope-divider"></div>
-        <div class="map-box" id="map-box">
-          <svg viewBox="0 0 400 320" preserveAspectRatio="none">
-            <polyline id="path-line" points="" fill="none" stroke="#efe2c2" stroke-width="5" stroke-dasharray="2 14" stroke-linecap="round" opacity="0.85"/>
-          </svg>
-          <!-- islands injected by JS -->
-          <div class="captain-marker" id="captain-marker"><img src="" alt="선장" id="captain-img"></div>
+        <div class="map-outer">
+          <div class="progress-badge" id="progress-badge">0 / 100</div>
+          <div class="map-scroll" id="map-scroll">
+            <div class="map-world" id="map-world">
+              <svg id="map-svg" viewBox="0 0 400 400" preserveAspectRatio="none">
+                <polyline id="path-line" points="" fill="none" stroke="#efe2c2" stroke-width="5" stroke-dasharray="2 14" stroke-linecap="round" opacity="0.85"/>
+              </svg>
+              <div class="captain-marker" id="captain-marker"><img src="" alt="선장" id="captain-img"></div>
+            </div>
+          </div>
         </div>
-        <div class="map-hint" id="map-hint">섬을 눌러서 퀘스트를 시작해봐.</div>
+        <div class="map-hint" id="map-hint">지도를 위아래로 넘기면서 섬을 눌러봐.</div>
       </div>
 
-      <!-- LOCKED NOTICE -->
       <div class="screen" id="screen-locked">
         <div class="eyebrow" id="locked-tag"></div>
         <h1 id="locked-title"></h1>
@@ -251,7 +212,6 @@
         <button class="btn secondary" onclick="backToMap()">지도로 돌아가기</button>
       </div>
 
-      <!-- QUIZ -->
       <div class="screen" id="screen-quiz">
         <div class="eyebrow" id="quiz-eyebrow">QUEST</div>
         <h1 id="quiz-title"></h1>
@@ -263,13 +223,12 @@
         <div class="feedback" id="feedback"></div>
       </div>
 
-      <!-- COMPLETE -->
       <div class="screen" id="screen-complete">
         <div class="center"><div class="stamp">퀘스트 완료</div></div>
         <div class="captain-wrap"><img id="complete-img" src="" alt="선장"></div>
         <div class="center score" id="score-text"></div>
         <p class="lead" id="complete-msg"></p>
-        <button class="btn secondary" id="back-btn" onclick="backToMapAndWalk()">지도로 돌아가기</button>
+        <button class="btn secondary" onclick="backToMap()">지도로 돌아가기</button>
       </div>
 
     </div>
@@ -277,58 +236,73 @@
 </div>
 
 <script>
-/* ---------- 퀘스트 데이터 ---------- */
-const quests = [
-  {
-    id: 1,
+/* ---------- 실제 콘텐츠가 있는 퀘스트만 여기에 채워넣는다 ---------- */
+const QUEST_CONTENT = {
+  1: {
     title: "장례식장에 갈 때",
-    x: 55, y: 250,
     questions: [
-      {
-        tag: "미션 001-1 · 옷차림",
-        text: "갑자기 연락받고 급하게 나가야 해. 뭘 입고 가야 할까?",
-        options: [
-          { text: "어두운 색으로 통일하고, 화려한 무늬·액세서리는 뺀다", correct: true },
-          { text: "무늬만 화려하지 않으면 아무 옷이나 괜찮다", correct: false },
-          { text: "편한 청바지에 운동화면 충분하다", correct: false }
-        ],
-        right: "정답! 검은 정장이 정석이지만, 급할 땐 어두운 톤 통일이 최소한이야.",
-        wrong: "땡. 어두운 색으로 통일하고, 화려한 건 다 빼는 게 최소한의 예의야."
-      },
-      {
-        tag: "미션 001-2 · 향",
-        text: "향에 불을 붙였어. 이제 어떻게 꺼야 할까?",
-        options: [
-          { text: "입으로 후 불어서 끈다", correct: false },
-          { text: "손으로 살살 흔들어서 끈다", correct: true },
-          { text: "그냥 타서 꺼질 때까지 놔둔다", correct: false }
-        ],
-        right: "정답! 입으로 부는 건 제일 많이들 틀리는 실수야.",
-        wrong: "땡. 입으로 불면 안 돼. 손으로 살살 흔들어서 꺼야 해."
-      },
-      {
-        tag: "미션 001-3 · 말",
-        text: "상주 앞에 섰어. 무슨 말을 해야 위로가 될까?",
-        options: [
-          { text: "\"호상이네요, 그래도 다행이에요\"라고 말한다", correct: false },
-          { text: "\"뭐라 드릴 말씀이 없습니다\" 정도만 하고 손을 잡아준다", correct: true },
-          { text: "어쩌다 돌아가셨는지 자세히 여쭤본다", correct: false }
-        ],
-        right: "정답! 말을 아끼는 게 최고의 위로야.",
-        wrong: "땡. 호상이란 말도, 자세히 묻는 것도 안 돼. 말은 아끼고 손을 잡아줘."
-      }
+      { tag:"미션 001-1 · 옷차림", text:"갑자기 연락받고 급하게 나가야 해. 뭘 입고 가야 할까?",
+        options:[
+          {text:"어두운 색으로 통일하고, 화려한 무늬·액세서리는 뺀다", correct:true},
+          {text:"무늬만 화려하지 않으면 아무 옷이나 괜찮다", correct:false},
+          {text:"편한 청바지에 운동화면 충분하다", correct:false}],
+        right:"정답! 검은 정장이 정석이지만, 급할 땐 어두운 톤 통일이 최소한이야.",
+        wrong:"땡. 어두운 색으로 통일하고, 화려한 건 다 빼는 게 최소한의 예의야." },
+      { tag:"미션 001-2 · 향", text:"향에 불을 붙였어. 이제 어떻게 꺼야 할까?",
+        options:[
+          {text:"입으로 후 불어서 끈다", correct:false},
+          {text:"손으로 살살 흔들어서 끈다", correct:true},
+          {text:"그냥 타서 꺼질 때까지 놔둔다", correct:false}],
+        right:"정답! 입으로 부는 건 제일 많이들 틀리는 실수야.",
+        wrong:"땡. 입으로 불면 안 돼. 손으로 살살 흔들어서 꺼야 해." },
+      { tag:"미션 001-3 · 말", text:"상주 앞에 섰어. 무슨 말을 해야 위로가 될까?",
+        options:[
+          {text:"\"호상이네요, 그래도 다행이에요\"라고 말한다", correct:false},
+          {text:"\"뭐라 드릴 말씀이 없습니다\" 정도만 하고 손을 잡아준다", correct:true},
+          {text:"어쩌다 돌아가셨는지 자세히 여쭤본다", correct:false}],
+        right:"정답! 말을 아끼는 게 최고의 위로야.",
+        wrong:"땡. 호상이란 말도, 자세히 묻는 것도 안 돼. 말은 아끼고 손을 잡아줘." }
     ]
-  },
-  { id: 2, title: "다음 퀘스트", x: 155, y: 165, questions: null },
-  { id: 3, title: "다음 퀘스트", x: 250, y: 220, questions: null },
-  { id: 4, title: "다음 퀘스트", x: 340, y: 110, questions: null }
-];
+  }
+  // 002번부터는 여기에 { 2: {title:"...", questions:[...]} } 형태로 계속 추가하면 됨
+};
+
+const TOTAL_QUESTS = 100;
+
+/* ---------- 100개 섬 좌표를 구불구불한 길로 자동 생성 ---------- */
+function buildQuests(){
+  const list = [];
+  const rowH = 62;           // 퀘스트 하나당 세로 간격
+  const topPad = 50, botPad = 50;
+  for(let i = 1; i <= TOTAL_QUESTS; i++){
+    const x = 200 + Math.sin(i * 0.55) * 130;   // 좌우로 구불구불
+    const y = topPad + (i - 1) * rowH;
+    const content = QUEST_CONTENT[i];
+    list.push({
+      id: i,
+      title: content ? content.title : "다음 퀘스트",
+      x, y,
+      questions: content ? content.questions : null
+    });
+  }
+  return { quests: list, worldHeight: topPad + (TOTAL_QUESTS - 1) * rowH + botPad };
+}
+const { quests, worldHeight } = buildQuests();
+
+/* ---------- 저장 ---------- */
+const LS_COMPLETED = 'dad_quest_completed';
+const LS_CAPTAIN_AT = 'dad_quest_captain_at';
+function loadCompleted(){ try{ return JSON.parse(localStorage.getItem(LS_COMPLETED)) || []; }catch(e){ return []; } }
+function saveCompleted(){ try{ localStorage.setItem(LS_COMPLETED, JSON.stringify(completed)); }catch(e){} }
+function loadCaptainAt(){
+  const n = parseInt(localStorage.getItem(LS_CAPTAIN_AT), 10);
+  return (n && questById(n)) ? n : firstPublished().id;
+}
+function saveCaptainAt(){ try{ localStorage.setItem(LS_CAPTAIN_AT, String(captainAt)); }catch(e){} }
 
 /* ---------- 상태 ---------- */
-let unlocked = 1;         // 여기까지 열려있음
-let completed = [];       // 완료한 quest id들
-let captainAt = 1;        // 선장이 실제로 서 있는 섬 id
-let pendingUnlock = null; // 완료 직후, 지도로 돌아갈 때 걸어갈 다음 섬 id
+let completed = [];
+let captainAt = 1;
 let activeQuest = null;
 let qCurrent = 0;
 let qCorrect = 0;
@@ -340,60 +314,63 @@ function showScreen(id){
   el(id).classList.add('active');
 }
 function questById(id){ return quests.find(q => q.id === id); }
-function pct(q){ return { left: (q.x/400*100) + '%', top: (q.y/320*100) + '%' }; }
+function firstPublished(){ return quests.find(q => q.questions) || quests[0]; }
+function isPublished(q){ return !!q.questions; }
+/* 순차 잠금: 001은 항상 가능, 나머지는 바로 이전 퀘스트를 깨야만 가능 */
+function canPlay(q){ return isPublished(q) && (q.id === 1 || completed.includes(q.id - 1)); }
+
+/* map-world 는 실제 픽셀 컨테이너. viewBox 좌표(0~400, 0~worldHeight)를 그대로 %로 환산 */
+function pct(q){ return { left: (q.x/400*100) + '%', top: (q.y/worldHeight*100) + '%' }; }
 
 /* ---------- 지도 렌더링 ---------- */
-function renderMap(){
-  const box = el('map-box');
-  box.querySelectorAll('.island').forEach(n => n.remove());
+function renderMap(spotlightId){
+  const world = el('map-world');
+  world.style.aspectRatio = '400 / ' + worldHeight;
+  world.querySelectorAll('.island').forEach(n => n.remove());
 
+  el('map-svg').setAttribute('viewBox', '0 0 400 ' + worldHeight);
   const pts = quests.map(q => q.x + ',' + q.y).join(' ');
   el('path-line').setAttribute('points', pts);
 
   quests.forEach(q => {
-    const isDone = completed.includes(q.id);
-    const isUnlocked = q.id <= unlocked;
-    const isCurrent = isUnlocked && !isDone && q.id === unlocked;
-
+    const done = completed.includes(q.id);
+    const playable = canPlay(q);
     const div = document.createElement('div');
-    div.className = 'island' + (isUnlocked ? '' : ' locked') + (isCurrent ? ' current' : '');
+    div.className = 'island' + (!playable ? ' locked' : '') + (spotlightId === q.id ? ' spotlight' : '');
     const p = pct(q);
-    div.style.left = p.left;
-    div.style.top = p.top;
+    div.style.left = p.left; div.style.top = p.top;
     div.innerHTML =
-      (isDone ? '<div class="flag">🚩</div>' : '') +
+      (done ? '<div class="flag">🚩</div>' : '') +
       '<div class="num">' + String(q.id).padStart(3,'0') + '</div>' +
-      '<div class="icon">' + (isDone ? '✔' : (isUnlocked ? '❗' : '🔒')) + '</div>';
+      '<div class="icon">' + (done ? '✔' : (playable ? '❗' : '🔒')) + '</div>';
     div.onclick = () => onIslandClick(q, div);
-    box.appendChild(div);
+    world.appendChild(div);
   });
 
   positionCaptain(captainAt);
+  el('progress-badge').textContent = completed.length + ' / ' + TOTAL_QUESTS;
 }
 
 function positionCaptain(questId){
   const q = questById(questId);
   const p = pct(q);
   const marker = el('captain-marker');
-  marker.style.left = p.left;
-  marker.style.top = p.top;
+  marker.style.left = p.left; marker.style.top = p.top;
   el('captain-img').src = CAPTAIN_SRC;
 }
 
 function spawnDust(x, y){
-  const box = el('map-box');
+  const world = el('map-world');
   for(let i=0;i<3;i++){
     const d = document.createElement('div');
     d.className = 'dust';
-    d.style.left = (x/400*100) + '%';
-    d.style.top = (y/320*100) + '%';
+    d.style.left = (x/400*100) + '%'; d.style.top = (y/worldHeight*100) + '%';
     d.style.animationDelay = (i*0.08)+'s';
-    box.appendChild(d);
+    world.appendChild(d);
     setTimeout(() => d.remove(), 700);
   }
 }
 
-/* 선장을 captainAt 섬에서 targetId 섬까지 걸어가게 하고, 끝나면 콜백 */
 function walkCaptainTo(targetId, onDone){
   const marker = el('captain-marker');
   const from = questById(captainAt);
@@ -402,41 +379,48 @@ function walkCaptainTo(targetId, onDone){
   spawnDust(from.x, from.y);
   requestAnimationFrame(() => {
     const p = pct(target);
-    marker.style.left = p.left;
-    marker.style.top = p.top;
+    marker.style.left = p.left; marker.style.top = p.top;
   });
   setTimeout(() => {
     marker.classList.remove('walking');
     spawnDust(target.x, target.y);
     captainAt = targetId;
+    saveCaptainAt();
     if(onDone) onDone();
   }, 1200);
 }
 
+/* 스크롤 지도에서 특정 섬이 가운데쯤 보이도록 스크롤 */
+function scrollToQuest(questId, smooth){
+  const q = questById(questId);
+  const scroller = el('map-scroll');
+  const worldPxHeight = el('map-world').getBoundingClientRect().height;
+  const targetTopPx = (q.y / worldHeight) * worldPxHeight;
+  const viewportH = scroller.clientHeight;
+  const scrollTarget = Math.max(0, targetTopPx - viewportH * 0.5);
+  scroller.scrollTo({ top: scrollTarget, behavior: smooth ? 'smooth' : 'auto' });
+}
+
 function onIslandClick(q, div){
-  if(q.id > unlocked){
+  if(!canPlay(q)){
     div.classList.add('shake');
     setTimeout(() => div.classList.remove('shake'), 350);
-    el('map-hint').textContent = '이전 퀘스트를 먼저 깨야 이 항로가 열려.';
+    el('map-hint').textContent = isPublished(q)
+      ? '이전 퀘스트부터 차례로 깨야 열려.'
+      : '아직 공개되지 않은 퀘스트야.';
     return;
   }
-  if(!q.questions){
-    el('locked-tag').textContent = 'QUEST ' + String(q.id).padStart(3,'0');
-    el('locked-title').textContent = q.title;
-    el('locked-msg').textContent = '아직 지도에 그려지지 않은 섬이야. 다음에 다시 와줘.';
-    showScreen('screen-locked');
-    return;
-  }
-  // 선장이 클릭한 섬으로 먼저 걸어간 다음 퀴즈 시작
   el('map-hint').textContent = '';
-  walkCaptainTo(q.id, () => startQuest(q));
+  if(captainAt === q.id){
+    startQuest(q);
+  } else {
+    walkCaptainTo(q.id, () => startQuest(q));
+  }
 }
 
 /* ---------- 퀴즈 진행 ---------- */
 function startQuest(q){
-  activeQuest = q;
-  qCurrent = 0;
-  qCorrect = 0;
+  activeQuest = q; qCurrent = 0; qCorrect = 0;
   el('quiz-eyebrow').textContent = 'QUEST ' + String(q.id).padStart(3,'0');
   el('quiz-title').textContent = q.title;
   showScreen('screen-quiz');
@@ -464,8 +448,7 @@ function renderQuestion(){
   opts.innerHTML = '';
   q.options.forEach(o => {
     const b = document.createElement('button');
-    b.className = 'opt';
-    b.textContent = o.text;
+    b.className = 'opt'; b.textContent = o.text;
     b.onclick = () => answer(o, b);
     opts.appendChild(b);
   });
@@ -475,8 +458,7 @@ function answer(o, btn){
   document.querySelectorAll('.opt').forEach(b => b.setAttribute('disabled','true'));
   const q = activeQuest.questions[qCurrent];
   if(o.correct){
-    btn.classList.add('correct');
-    qCorrect++;
+    btn.classList.add('correct'); qCorrect++;
     el('feedback').textContent = q.right;
   } else {
     btn.classList.add('wrong');
@@ -487,59 +469,70 @@ function answer(o, btn){
   }
   setTimeout(() => {
     qCurrent++;
-    if(qCurrent < activeQuest.questions.length){
-      renderQuestion();
-    } else {
-      finishQuest();
-    }
+    if(qCurrent < activeQuest.questions.length) renderQuestion();
+    else finishQuest();
   }, 1400);
 }
 
 function finishQuest(){
   if(!completed.includes(activeQuest.id)) completed.push(activeQuest.id);
-  pendingUnlock = null;
-  if(activeQuest.id === unlocked && unlocked < quests.length){
-    pendingUnlock = activeQuest.id + 1;
-  }
-
+  saveCompleted();
   const total = activeQuest.questions.length;
   el('complete-img').src = CAPTAIN_SRC;
   el('score-text').textContent = total + '문제 중 ' + qCorrect + '개 맞음';
   let msg;
-  if(qCorrect === total) msg = '완벽하네. 이 정도면 진짜 배에 태워도 되겠어. 다음 섬으로 가는 길이 열렸어.';
-  else if(qCorrect >= 1) msg = '얼추 아는구나. 그래도 다음 섬으로 가는 길은 열어줄게.';
-  else msg = '음... 편지를 다시 한 번 읽고 와야겠는데? 그래도 길은 열어줄게.';
-  if(!pendingUnlock) msg += ' (지금은 여기까지가 마지막 섬이야)';
+  if(qCorrect === total) msg = '완벽하네. 이 정도면 진짜 배에 태워도 되겠어.';
+  else if(qCorrect >= 1) msg = '얼추 아는구나. 다음에 또 확인해봐도 좋아.';
+  else msg = '음... 편지를 다시 한 번 읽고 와야겠는데?';
   el('complete-msg').textContent = msg;
   showScreen('screen-complete');
 }
 
-/* 완료 화면에서 "지도로 돌아가기"를 누르면: 지도 먼저 보여주고, 선장이 다음 섬으로 걸어가는 것까지 보여준 다음 잠금 해제 */
-function backToMapAndWalk(){
-  el('map-hint').textContent = '섬을 눌러서 퀘스트를 시작해봐.';
-  renderMap(); // 아직 unlocked 갱신 전 상태로 렌더 (완료 섬엔 깃발, 선장은 그 섬에)
-  showScreen('screen-map');
-
-  if(pendingUnlock){
-    const backBtn = el('back-btn');
-    const target = pendingUnlock;
-    setTimeout(() => {
-      walkCaptainTo(target, () => {
-        unlocked = target;
-        pendingUnlock = null;
-        renderMap();
-      });
-    }, 350);
-  }
-}
-
 function backToMap(){
-  el('map-hint').textContent = '섬을 눌러서 퀘스트를 시작해봐.';
+  el('map-hint').textContent = '지도를 위아래로 넘기면서 섬을 눌러봐.';
   renderMap();
   showScreen('screen-map');
+  requestAnimationFrame(() => scrollToQuest(captainAt, false));
 }
 
-renderMap();
+/* ---------- 초기 진입: URL의 ?q=번호 로 바로 그 퀘스트로 스크롤+진입 (순차 잠금 검사 포함) ---------- */
+function init(){
+  completed = loadCompleted();
+  captainAt = loadCaptainAt();
+
+  const params = new URLSearchParams(window.location.search);
+  const qParam = parseInt(params.get('q'), 10);
+  const target = qParam ? questById(qParam) : null;
+
+  renderMap(target && canPlay(target) ? target.id : null);
+  showScreen('screen-map');
+
+  requestAnimationFrame(() => {
+    if(target && canPlay(target)){
+      scrollToQuest(target.id, false);
+      el('map-hint').textContent = '';
+      setTimeout(() => {
+        if(captainAt === target.id){
+          setTimeout(() => startQuest(target), 450);
+        } else {
+          walkCaptainTo(target.id, () => setTimeout(() => startQuest(target), 250));
+        }
+      }, 350);
+    } else if(target && !canPlay(target)){
+      scrollToQuest(target.id, false);
+      el('locked-tag').textContent = 'QUEST ' + String(target.id).padStart(3,'0');
+      el('locked-title').textContent = target.title;
+      el('locked-msg').textContent = isPublished(target)
+        ? '이 퀘스트를 열려면 이전 퀘스트부터 차례로 깨야 해. 지도에서 지금 열려있는 섬부터 시작해봐.'
+        : '아직 지도에 그려지지 않은 섬이야. 다음에 다시 와줘.';
+      showScreen('screen-locked');
+    } else {
+      scrollToQuest(captainAt, false);
+    }
+  });
+}
+
+init();
 </script>
 
 </body>
